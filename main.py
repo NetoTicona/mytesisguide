@@ -26,7 +26,7 @@ class Main(object):
         self.cursor = self.connect.cursor()
 
         #self.serial_port = serial.Serial('COM13', 9600)
-        self.serial_port = serial.Serial('COM1', 9600)
+        self.serial_port = serial.Serial('COM14', 9600)
 
         self.stop_thread_flag = False
         self.arduino_data_var = StringVar()
@@ -894,18 +894,60 @@ class Main(object):
         closing = cv2.morphologyEx( dilatacion , cv2.MORPH_CLOSE , kernel )
 
 
-        contours, _ = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        weight = 0
-        counter = 0
-        for c in contours:
+        contours, hierarchy = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        area_total = 0
+        contourTouched = []
+        #------------------ Get The Area ------------------------------//
+        """ for c in contours:
             area = cv2.contourArea(c)
             if area > 4500:
                 #print(f"Contour red{counter + 1}: Area = {area}")
                 cv2.drawContours( sumframe , contours,  -1 , colorval, 2, cv2.LINE_AA)
-                weight += area
-        return sumframe , weight      
+                area_total += area """
+        if contours and hierarchy is not None and len(hierarchy[0]) > 0:
+            
+            for i in range(len(contours)):
+                if not(i in contourTouched) :
+                    contour = contours[i]
+                    hierarchy_info = hierarchy[0][i]
+                    print("hierarchy_info: " + str(i))
+                    print(hierarchy_info)
+                    if hierarchy_info[2] > -1: #tiene hijo
+                        area_father = cv2.contourArea( contour )
+                        cv2.drawContours( sumframe , [contour],  -1 , (255,0,0), 1, cv2.LINE_AA)
+                        #extraer todos los contornos cuyo padre es el anterior
+                        brothers_area = 0
+                        for j in range(len(contours)):
+                            hierarchy_brother = hierarchy[0][j]
+                            if hierarchy_brother[3] == i : 
+                                brother_contour = contours[j]
+                                brothers_area +=  cv2.contourArea( brother_contour )
+                                cv2.drawContours( sumframe , [brother_contour],  -1 , (0,255,0), 1, cv2.LINE_AA)
+                                contourTouched.append( j )
+                        #endForbrother
+                        #simple way:
+                        """ area_child = cv2.contourArea(  contours[ hierarchy_info[2]  ] )
+                        cv2.drawContours( sumframe , [contours[ hierarchy_info[2] ]],  -1 , (0,255,0), 1, cv2.LINE_AA) """
+                        #Tiene hermano? next
+                        area = area_father - brothers_area
+                        area_total += area
+                    else:
+                        print("No tiene hijo!!!")
+                        area_child = cv2.contourArea( contour )
+                        cv2.drawContours( sumframe , [contour],  -1 , (255,255,255), 1, cv2.LINE_AA)
+                        area_total += area_child
+                    print("\n")
+                else:
+                    print("El contorno tocado {}".format(i)  )
+            #fin For
+            print( "El area total es: {}".format( area_total )  )
 
-    
+        #--------------------------------------------------------------//
+
+        return sumframe , area_total      
+
+
+
 
 
     def on_closing(self):
