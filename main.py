@@ -24,12 +24,17 @@ class Main(object):
         self.connect = pymysql.connect(
             host="localhost", user="root", passwd="", database="db_image_hsv")
         self.cursor = self.connect.cursor()
-        self.serial_port = serial.Serial('COM8', 9600)
+
+        #self.serial_port = serial.Serial('COM13', 9600)
+        self.serial_port = serial.Serial('COM1', 9600)
+
         self.stop_thread_flag = False
         self.arduino_data_var = StringVar()
         self.arduino_data_var.set("Peso: 0 g")
         self.tab_change_enabled = True
         self.weight = 0
+        self.initiale_aspect = False
+        self.display_frame = True
         # ================================================= top frame =============================
         topFrame = Frame(mainFrame, width=1100, height=110,
                          bg='orange', padx=20, borderwidth=2)
@@ -74,7 +79,7 @@ class Main(object):
                                   compound=LEFT, font='arial 12 bold', command=self.lets_start, state="normal")
         self.btnbook_ign.place(x=10 + 75, y=10)
         self.btnbook_start = Button(centerLeftFrame, text='Inicio',
-                                    compound=LEFT, font='arial 12 bold', command=self.capture_values, state="disabled")
+                                    compound=LEFT, font='arial 12 bold', command=self. initialize_masks , state="disabled")
         self.btnbook_start.place(x=126 + 75, y=10)
 
         self.btnbook_shutdown = Button(centerLeftFrame, text='Apagar',
@@ -322,29 +327,20 @@ class Main(object):
         self.video_label_y.pack()
 
     def lets_start(self):
-        try:
-            self.tab_change_enabled = True
-            if not hasattr(self, 'arduino_thread') or not self.arduino_thread.is_alive():
-                self.serial_port.write(b'START')
-                self.start_arduino_thread()
-            """ self.tabs_vid.tab(self.tabo_vid, state="normal")  """
+            print("LESt START")
             self.tabs_vid.tab(self.tab1_vid, state="normal")
-            self.tabs_vid.tab(self.tab2_vid, state="normal")
-            self.tabs_vid.tab(self.tab3_vid, state="normal")
-            self.tabs_vid.tab(self.tab4_vid, state="normal")
+            self.tab_change_enabled = True
+            #self.tabs_vid.tab(self.tab2_vid, state="normal")
+            #self.tabs_vid.tab(self.tab3_vid, state="normal")
+            #self.tabs_vid.tab(self.tab4_vid, state="normal")
 
-            self.button1.config(state="normal")
+            #self.button1.config(state="normal")
             self.btnbook_ign.config(state="disabled")
             self.btnbook_start.config(state="normal")
             self.btnbook_shutdown.config(state="normal")
-            self.btnbook_capture.config(state="normal")
-            # ======== cam ========#
-            # global cam
-            # cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            # self.start_camera_orig()
+            #
+            self.initiale_aspect = True
             self.tabs_vid.select(self.tab1_vid)
-            # ======== SQL ========#
-            # print("Vamos a iniciar")
 
             self.cursor = self.connect.cursor()
             self.cursor.execute("SELECT * from t_hsv")
@@ -375,10 +371,8 @@ class Main(object):
                     self.scalec4.set(int(row[5]))
                     self.scalec5.set(int(row[6]))
                     self.scalec6.set(int(row[7]))
-            # self.cursor.close()
-        except Exception as e:
-            messagebox.showerror("Error", "Ocurrio error al iniciar")
-            print("Error al extraer data: ", e)
+        
+         
 
     def shut_down(self):
         try:
@@ -386,6 +380,7 @@ class Main(object):
             self.arduino_data_var.set("Peso: 0 g")
             self.stop_arduino_thread()
             self.tab_change_enabled = False
+            #self.initiale_aspect = False
             # self.stop_thread_flag = True
             # self.cam = None
             self.tabs_vid.tab(self.tab1_vid, state="disabled")
@@ -430,17 +425,45 @@ class Main(object):
             messagebox.showerror("Error", "Ocurrio error al apagar")
             print("Error al extraer data: ", e)
 
-    def capture_values(self):
+    def initialize_masks(self):
+        self.btnbook_capture.config(state="normal")
         try:
-            print("Capturaremos los valores")
+            self.initiale_aspect = False
+            self.tab_change_enabled = True
+            if not hasattr(self, 'arduino_thread') or not self.arduino_thread.is_alive():
+                self.serial_port.write(b'START')
+                self.start_arduino_thread()
+            """ self.tabs_vid.tab(self.tabo_vid, state="normal")  """
+            self.tabs_vid.tab(self.tab1_vid, state="normal")
+            self.tabs_vid.tab(self.tab2_vid, state="normal")
+            self.tabs_vid.tab(self.tab3_vid, state="normal")
+            self.tabs_vid.tab(self.tab4_vid, state="normal")
+
+            self.button1.config(state="normal")
+            self.btnbook_ign.config(state="disabled")
+            self.btnbook_start.config(state="disabled")
+            self.btnbook_shutdown.config(state="normal")
+            self.btnbook_capture.config(state="normal")
+            
+            # ======== cam ========#
+            # global cam
+            # cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            # self.start_camera_orig()
+            # ======== SQL ========#
+            # print("Vamos a iniciar")
+            # self.cursor.close()
         except Exception as e:
-            messagebox.showerror("Error", "Ocurrio al iniciar")
+            messagebox.showerror("Error", "Ocurrio error al iniciar")
             print("Error al extraer data: ", e)
 
     def captureTwo(self):
+
+        #self.tab_change_enabled = False
+        print("Boton de capture 2")
+        self.display_frame = False
         try:
 
-            if self.cam is not None:
+            if self.cam is not None :
                 ret, frame = self.cam.read()
                 frame_red = frame.copy()
                 frame_green = frame.copy()
@@ -490,7 +513,13 @@ class Main(object):
                     values = ( str(self.weight ), str( capture_filename ) ,str(_weight_red) , str( _weight_green ) , str( _weight_yellow ) , str( predominant ) )
                     self.cursor.execute( dataTraining_sql , values)
                     self.connect.commit()
-                    messagebox.showinfo("Success", "Se capturó correctamente")
+                    result = messagebox.showinfo("Success", "Se capturó correctamente")
+                    if result == "ok":
+                        #self.tab_change_enabled = True
+                        print("Boton de capture after ok")
+                        self.display_frame = True
+                        self.handle_original_tab()
+       
 
 
         except Exception as e:
@@ -580,62 +609,89 @@ class Main(object):
             widget.destroy()
 
     def start_camera_orig(self):
-        if self.cam is not None:
+
+
+
+        if self.cam is not None and self.display_frame :
+
+            
+
             ret, frame = self.cam.read()
-            frame_red = frame.copy()
-            frame_green = frame.copy()
-            frame_yellow = frame.copy()
-            if ret == True:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            if self.initiale_aspect:
 
-                r_hue_min = self.scalea1.get()
-                r_hue_max = self.scalea2.get()
-                r_sat_min = self.scalea3.get()
-                r_sat_max = self.scalea4.get()
-                r_val_min = self.scalea5.get()
-                r_val_max = self.scalea6.get()
-                _frame_red,_weight_red = self.process_frame( frame_red , r_hue_min,r_sat_min,r_val_min,r_hue_max,r_sat_max,r_val_max , frame , (255,0,0) )
+                if ret == True:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    font = cv2.FONT_HERSHEY_COMPLEX
+                    weight = 999
+                    cv2.putText( frame, "el espo se mide en newtons" , (20,20), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
 
-                g_hue_min = self.scaleb1.get()
-                g_hue_max = self.scaleb2.get()
-                g_sat_min = self.scaleb3.get()
-                g_sat_max = self.scaleb4.get()
-                g_val_min = self.scaleb5.get()
-                g_val_max = self.scaleb6.get()
-                _frame_green,_weight_green = self.process_frame( frame_green , g_hue_min,g_sat_min,g_val_min,g_hue_max,g_sat_max,g_val_max , _frame_red , (0,255,0) )
-
-                y_hue_min = self.scalec1.get()
-                y_hue_max = self.scalec2.get()
-                y_sat_min = self.scalec3.get()
-                y_sat_max = self.scalec4.get()
-                y_val_min = self.scalec5.get()
-                y_val_max = self.scalec6.get()
-                _frame_yellow,_weight_yellow = self.process_frame( frame_yellow , y_hue_min,y_sat_min,y_val_min,y_hue_max,y_sat_max,y_val_max , _frame_green , (255,147,24))
-
-                obj_g = { "id":1, "weight":_weight_green,"description":"Verde" }
-                obj_r = { "id":2, "weight":_weight_red,"description":"Rojo" }
-                obj_y = { "id":3, "weight":_weight_yellow,"description":"Amarillo" }
-
-                color_g = json.dumps( obj_g )
-                color_r = json.dumps( obj_r )
-                color_y = json.dumps( obj_y )
-                predominant = self.getBigArea( color_g,color_y,color_r )
-
-                font = cv2.FONT_HERSHEY_COMPLEX
-                cv2.putText( _frame_yellow, f"El area rojo es: {str(_weight_red)}" , (250, 350), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
-                cv2.putText( _frame_yellow, f"El area verde es: {str(_weight_green)}" , (250,370), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
-                cv2.putText( _frame_yellow, f"El area amarillo es: {str(_weight_yellow)}" , (250,390), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
-                cv2.putText( _frame_yellow, f"El color predominante es: { predominant } " , (120,450), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
+                    im = Image.fromarray(frame)
+                    img = ImageTk.PhotoImage(image=im)
+                    # -------------------  -------------------------#
+                    self.video_label_i.configure(image=img)
+                    self.video_label_i.image = img
+                    self.video_label_i.after(10, self.start_camera_orig)
+                else:
+                    print("ret no es True")
 
 
-                im = Image.fromarray(_frame_yellow)
-                img = ImageTk.PhotoImage(image=im)
-                # -------------------  -------------------------#
-                self.video_label_i.configure(image=img)
-                self.video_label_i.image = img
-                self.video_label_i.after(10, self.start_camera_orig)
             else:
-                print("ret no es True")
+                frame_red = frame.copy()
+                frame_green = frame.copy()
+                frame_yellow = frame.copy()
+                if ret == True:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+                    r_hue_min = self.scalea1.get()
+                    r_hue_max = self.scalea2.get()
+                    r_sat_min = self.scalea3.get()
+                    r_sat_max = self.scalea4.get()
+                    r_val_min = self.scalea5.get()
+                    r_val_max = self.scalea6.get()
+                    _frame_red,_weight_red = self.process_frame( frame_red , r_hue_min,r_sat_min,r_val_min,r_hue_max,r_sat_max,r_val_max , frame , (255,0,0) )
+
+                    g_hue_min = self.scaleb1.get()
+                    g_hue_max = self.scaleb2.get()
+                    g_sat_min = self.scaleb3.get()
+                    g_sat_max = self.scaleb4.get()
+                    g_val_min = self.scaleb5.get()
+                    g_val_max = self.scaleb6.get()
+                    _frame_green,_weight_green = self.process_frame( frame_green , g_hue_min,g_sat_min,g_val_min,g_hue_max,g_sat_max,g_val_max , _frame_red , (0,255,0) )
+
+                    y_hue_min = self.scalec1.get()
+                    y_hue_max = self.scalec2.get()
+                    y_sat_min = self.scalec3.get()
+                    y_sat_max = self.scalec4.get()
+                    y_val_min = self.scalec5.get()
+                    y_val_max = self.scalec6.get()
+                    _frame_yellow,_weight_yellow = self.process_frame( frame_yellow , y_hue_min,y_sat_min,y_val_min,y_hue_max,y_sat_max,y_val_max , _frame_green , (255,147,24))
+
+                    obj_g = { "id":1, "weight":_weight_green,"description":"Verde" }
+                    obj_r = { "id":2, "weight":_weight_red,"description":"Rojo" }
+                    obj_y = { "id":3, "weight":_weight_yellow,"description":"Amarillo" }
+
+                    color_g = json.dumps( obj_g )
+                    color_r = json.dumps( obj_r )
+                    color_y = json.dumps( obj_y )
+                    predominant = self.getBigArea( color_g,color_y,color_r )
+
+                    font = cv2.FONT_HERSHEY_COMPLEX
+                    cv2.putText( _frame_yellow, f"El area rojo es: {str(_weight_red)}" , (250, 350), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El area verde es: {str(_weight_green)}" , (250,370), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El area amarillo es: {str(_weight_yellow)}" , (250,390), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El color predominante es: { predominant } " , (120,450), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
+
+
+                    im = Image.fromarray(_frame_yellow)
+                    img = ImageTk.PhotoImage(image=im)
+                    # -------------------  -------------------------#
+                    self.video_label_i.configure(image=img)
+                    self.video_label_i.image = img
+                    self.video_label_i.after(10, self.start_camera_orig)
+                else:
+                  print("ret no es True")
+        else:  
+            print("sel cam is nonee")
 
     def start_camera_red(self):
         if self.cam is not None:
@@ -747,6 +803,8 @@ class Main(object):
             elif selected_tab_index == 3:
                 # Action for the 'yellow' tab
                 self.handle_yellow_tab()
+        else:
+            print("tab_change_enabled Dehabilitado")
     # Separate functions for each tab change
 
     def handle_original_tabo(self):
@@ -760,7 +818,7 @@ class Main(object):
     def handle_original_tab(self):
         # Your code for the 'original' tab action
         #print("Original tab selected")
-        # print("redTAbbORIGG")
+        print("original TAB")
         if self.cam is not None:
             self.cam.release()
             cv2.destroyAllWindows()
@@ -768,6 +826,7 @@ class Main(object):
         self.setTimeout(self.my_function_orig, 100)
 
     def my_function_orig(self):
+        print("Mi funcion origg")
         self.cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         self.start_camera_orig()
 
@@ -825,23 +884,17 @@ class Main(object):
         lower_red = np.array([hue_min, sat_min, val_min])
         upper_red = np.array([hue_max, sat_max, val_max])
         mask_red = cv2.inRange(hsv, lower_red, upper_red)
-
         #(blur)imgBlur = cv2.GaussianBlur( mask_red , (5,5) , 1 )
-
         kernel = np.ones( (2,2) , np.uint8 )
-
         #(blur)erosion = cv2.erode( imgBlur , kernel , iterations=2 )
         #(blur)dilatacion = cv2.dilate( erosion , kernel , iterations=3 )
         kernelTomorf = np.ones( (3,3) , np.uint8 )
-
         erosion = cv2.erode( mask_red , kernelTomorf , iterations=4 )
         dilatacion = cv2.dilate( erosion , kernelTomorf , iterations=4 )
         closing = cv2.morphologyEx( dilatacion , cv2.MORPH_CLOSE , kernel )
-    
+
 
         contours, _ = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-
         weight = 0
         counter = 0
         for c in contours:
@@ -851,6 +904,9 @@ class Main(object):
                 cv2.drawContours( sumframe , contours,  -1 , colorval, 2, cv2.LINE_AA)
                 weight += area
         return sumframe , weight      
+
+    
+
 
     def on_closing(self):
         print("cerrando ventana")
@@ -864,6 +920,7 @@ def main():
     root.title("Library Managment System")
     root.geometry("1200x670")
     root.iconbitmap("icon/my.ico")
+    root.resizable( False , False )
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     root.mainloop()
 

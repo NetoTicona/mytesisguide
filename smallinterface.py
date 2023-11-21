@@ -26,6 +26,7 @@ class Main(object):
         self.arduino_data_var = StringVar()
         self.arduino_data_var.set("Peso: 0 g")
         self.tab_change_enabled = True
+        self.display_frame = True
         # ================================================= top frame =============================
         topFrame = Frame(mainFrame, width=1100, height=110,
                          bg='orange', padx=20, borderwidth=2)
@@ -70,6 +71,9 @@ class Main(object):
         # ======= 3 Button =========
         self.btnbook_ign = Button(centerLeftFrame, text='Encendido',
                               compound=LEFT, font='arial 12 bold', command=self.lets_start , state="normal")
+
+
+                              
         self.btnbook_ign.place(x=10 + 75, y=10  ) 
 
 
@@ -79,6 +83,12 @@ class Main(object):
 
         self.btnbook_capture = Button(centerLeftFrame, text='capturar',
                               compound=LEFT, font='arial 12 bold', command=self.captureTwo , state="disabled")
+        self.btnbook_capture.place(x=270 + 75, y=10  ) 
+
+
+        
+        self.btnbook_capture = Button(centerLeftFrame, text='retormr',
+                              compound=LEFT, font='arial 12 bold', command=self.reanudate , state="disabled")
         self.btnbook_capture.place(x=270 + 75, y=10  ) 
 
 
@@ -348,6 +358,7 @@ class Main(object):
                     self.scalec5.set(int(row[6]))
                     self.scalec6.set(int(row[7]))
             # self.cursor.close()
+           
         except Exception as e:
             print("Error al extraer data: ", e)
 
@@ -441,8 +452,9 @@ class Main(object):
             print("Se finalizó")
         # self.clean_center_right_frame()
     def captureTwo( self ):   
-        self.tab_change_enabled = False 
+        self.tab_change_enabled = False
         print("Boton de capture 2")
+        self.display_frame = False
 
     def handle_original_tabo(self):
         # Your code for the 'original' tab action
@@ -460,18 +472,25 @@ class Main(object):
             cv2.destroyAllWindows()
             self.cam = None
         self.setTimeout( self.my_function_orig ,100 )
+
+
+    def reanudate( self ):
+        print("Se presiono sobre reanudate")
+        
     def setTimeout(self,func, timeout):
+
         def wrapper():
             func()
         timeout_mill = timeout/1000
         timer = threading.Timer( timeout_mill , wrapper)
         timer.start()
+
     def my_function_orig( self  ):
         self.cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         self.start_camera_orig()
 
     def start_camera_orig(self):
-        if self.cam is not None:
+        if self.cam is not None and self.display_frame :
             ret, frame = self.cam.read()
             if ret == True:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -496,6 +515,7 @@ def main():
     root.title("Library Managment System")
     root.geometry("1200x670")
     root.iconbitmap("icon/my.ico")
+    root.resizable( False , False )
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     root.mainloop()
 if __name__ == "__main__":
