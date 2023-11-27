@@ -293,7 +293,7 @@ class Main(object):
         self.video_label.pack() """
         # ================ Tabs para videos ==============
         self.tabs_vid = ttk.Notebook(centerRightFrame, width=600, height=460)
-        self.tabs_vid.place(relx=0.5, rely=0.5, anchor="center")
+        self.tabs_vid.place(relx=0.5, rely=0.475, anchor="center")
         """ self.tabo_icon_vid = PhotoImage(file='icon/original.png') """
         self.tab1_icon_vid = PhotoImage(file='icon/original.png')
         self.tab2_icon_vid = PhotoImage(file='icon/red.png')
@@ -626,7 +626,7 @@ class Main(object):
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     font = cv2.FONT_HERSHEY_COMPLEX
                     weight = 999
-                    cv2.putText( frame, "el espo se mide en newtons" , (20,20), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( frame, "" , (20,20), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
 
                     im = Image.fromarray(frame)
                     img = ImageTk.PhotoImage(image=im)
@@ -679,10 +679,10 @@ class Main(object):
                     predominant = self.getBigArea( color_g,color_y,color_r )
 
                     font = cv2.FONT_HERSHEY_COMPLEX
-                    cv2.putText( _frame_yellow, f"El area rojo es: {str(_weight_red)}" , (250, 350), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
-                    cv2.putText( _frame_yellow, f"El area verde es: {str(_weight_green)}" , (250,370), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
-                    cv2.putText( _frame_yellow, f"El area amarillo es: {str(_weight_yellow)}" , (250,390), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
-                    cv2.putText( _frame_yellow, f"El color predominante es: { predominant } " , (120,450), font, 0.68 , (0,0,0),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El área rojo es: {str(_weight_red)}" , (30, 350), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El área verde es: {str(_weight_green)}" , (30,370), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El área amarillo es: {str(_weight_yellow)}" , (30,390), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El color predominante es: { predominant } " , (30,450), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
 
 
                     im = Image.fromarray(_frame_yellow)
@@ -714,7 +714,7 @@ class Main(object):
 
                 #print( f"El área total rojo es: { weight }"  )
                 font = cv2.FONT_HERSHEY_COMPLEX
-                cv2.putText( _frame, f"El area rojo total es: {_weight}" , (200,450), font, 0.68 , (0,0,255),1,cv2.LINE_AA  )
+                cv2.putText( _frame, f"El área rojo total es: {_weight}" , (30,450), font, 0.68 , (0,0,255),1,cv2.LINE_AA  )
 
                 frame_rgb = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
                 im_red = Image.fromarray( frame_rgb )
@@ -742,7 +742,7 @@ class Main(object):
 
                 #print( f"El área total verde es: { weight }"  )
                 font = cv2.FONT_HERSHEY_COMPLEX
-                cv2.putText( _frame, f"El area verde total es: {_weight}" , (200,450), font, 0.68 , (0,255,0),1,cv2.LINE_AA  )
+                cv2.putText( _frame, f"El área verde total es: {_weight}" , (30,450), font, 0.68 , (0,255,0),1,cv2.LINE_AA  )
              
                 frame_rgb = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
                 im_green = Image.fromarray( frame_rgb )
@@ -769,7 +769,7 @@ class Main(object):
 
                 #print( f"El área total rojo es: { weight }"  )
                 font = cv2.FONT_HERSHEY_COMPLEX
-                cv2.putText( _frame, f"El area amarilla total es: {_weight}" , (200,450), font, 0.68 , (24,147,255),1,cv2.LINE_AA  )
+                cv2.putText( _frame, f"El área amarilla total es: {_weight}" , (30,450), font, 0.68 , (24,147,255),1,cv2.LINE_AA  )
 
                 #print( f"El área total amarillo es: { _weight }"  )
                 frame_rgb = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
@@ -943,7 +943,7 @@ class Main(object):
                 
                    # print("El contorno tocado {}".format(i)  )
             #fin For
-           # print( "El area total es: {}".format( area_total )  )
+           # print( "El área total es: {}".format( area_total )  )
 
         #--------------------------------------------------------------//
 
