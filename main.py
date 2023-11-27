@@ -18,6 +18,7 @@ class Main(object):
     def __init__(self, master):
         self.master = master
         self.cam = None
+        backgroundcolor = "#F5F5DC"
         # frames
         mainFrame = Frame(self.master)
         mainFrame.pack()
@@ -37,7 +38,7 @@ class Main(object):
         self.display_frame = True
         # ================================================= top frame =============================
         topFrame = Frame(mainFrame, width=1100, height=110,
-                         bg='orange', padx=20, borderwidth=2)
+                         bg=backgroundcolor, padx=20, borderwidth=2)
         topFrame.pack(side=TOP, fill=X)
         self.top_image = PhotoImage(file="icon/unsa.png")
         self.top_image = self.top_image.subsample(2, 2)
@@ -45,33 +46,33 @@ class Main(object):
         self.top_image_label.grid(
             row=0, column=0, padx=(0, 10))  # Add padx for spacing
         self.heading = Label(topFrame, text='Universidad nacional de san agustin\n "Diseño e Implementación de un Sistema Clasificador de Mangos\n Usando una Red Neuronal y Visión por Computadora" ',
-                             font="arial 18 bold", fg='#003f8a', bg='white')
+                             font="arial 18 bold", fg='#003f8a', bg=backgroundcolor)
         # Center align vertically
         self.heading.grid(row=0, column=1, sticky="nsew")
         topFrame.columnconfigure(1, weight=1)
         topFrame.rowconfigure(0, weight=1)
         # =================================================== center frame===========================
         centerFrame = Frame(mainFrame, width=1200,
-                            relief=RIDGE, bg="red", height=560)
+                            relief=RIDGE,  borderwidth=0, height=560)
         centerFrame.pack(side=TOP)
         # =============== center left frame =============
         centerLeftFrame = Frame(
-            centerFrame, width=500, height=560, bg="yellow", borderwidth=2, relief="solid")
+            centerFrame, width=500, height=560, bg=backgroundcolor,  borderwidth=0)
         centerLeftFrame.pack(side=LEFT)
         centerLeftFrame.pack_propagate(False)
         # ====== Results ===========
         centerLeftFrameResult = Frame(centerLeftFrame, width=400,
-                                      height=50, bg="salmon", borderwidth=2, relief="solid")
+                                      height=50, bg=backgroundcolor,  borderwidth=0)
         centerLeftFrameResult.place(in_=centerLeftFrame,
                                     anchor="center", relx=0.5, rely=0.92)
         centerLeftFrameResult.pack_propagate(False)
         # Create and place the first label with text "Peso: 45Kg"
         self.label_peso = Label(
-            centerLeftFrameResult, textvariable=self.arduino_data_var, font="arial 12 bold", bg="salmon")
+            centerLeftFrameResult, textvariable=self.arduino_data_var, font="arial 12 bold", bg=backgroundcolor)
         self.label_peso.pack(side=LEFT, padx=10)
         # Create and place the second label with text "Resultado: Exportable"
         self.label_resultado = Label(
-            centerLeftFrameResult, text="Resultado: Exportable", font="arial 12 bold", bg="salmon")
+            centerLeftFrameResult, text="Resultado: Exportable", font="arial 12 bold", bg=backgroundcolor)
         self.label_resultado.pack(side=LEFT, padx=10)
         centerLeftFrameResult.columnconfigure(0, weight=1)  #
         # ======= 3 Button =========
@@ -92,7 +93,7 @@ class Main(object):
 
         # ======= innerFrame =======
         innerLeftFrame = Frame(centerLeftFrame, width=400,
-                               height=400, bg="salmon", borderwidth=2, relief="solid")
+                               height=400, bg=backgroundcolor,  borderwidth=0)
         innerLeftFrame.place(in_=centerLeftFrame,
                              anchor="center", relx=0.5, rely=0.46)
         # Create the buttons
@@ -285,7 +286,7 @@ class Main(object):
         self.scalec6.place(x=140, y=350-91)
         # =============== center right frame ==============
         centerRightFrame = Frame(
-            centerFrame, width=700, height=560, bg="blue", borderwidth=2, relief="sunken")
+            centerFrame, width=700, height=560, bg=backgroundcolor, borderwidth=0)
         centerRightFrame.pack(side=RIGHT)
         centerRightFrame.pack_propagate(False)  # previene auto ajuste
         """ self.video_label = Label(centerRightFrame)
@@ -427,6 +428,8 @@ class Main(object):
 
     def initialize_masks(self):
         self.btnbook_capture.config(state="normal")
+    
+
         try:
             self.initiale_aspect = False
             self.tab_change_enabled = True
@@ -460,7 +463,7 @@ class Main(object):
 
         #self.tab_change_enabled = False
         print("Boton de capture 2")
-        self.display_frame = False
+        #self.display_frame = False
         try:
 
             if self.cam is not None :
@@ -509,16 +512,16 @@ class Main(object):
                     color_y = json.dumps( obj_y )
                     predominant = self.getBigArea( color_g,color_y,color_r )
 
-                    dataTraining_sql = "insert into mangoe_training (peso , img_url , red_area, green_area , yellow_area , predominant_color) values ( %s , %s ,%s , %s ,%s , %s ) "
+                    """ dataTraining_sql = "insert into mangoe_training (peso , img_url , red_area, green_area , yellow_area , predominant_color) values ( %s , %s ,%s , %s ,%s , %s ) "
                     values = ( str(self.weight ), str( capture_filename ) ,str(_weight_red) , str( _weight_green ) , str( _weight_yellow ) , str( predominant ) )
                     self.cursor.execute( dataTraining_sql , values)
-                    self.connect.commit()
+                    self.connect.commit() """
                     result = messagebox.showinfo("Success", "Se capturó correctamente")
-                    if result == "ok":
+                    """ if result == "ok":
                         #self.tab_change_enabled = True
                         print("Boton de capture after ok")
                         self.display_frame = True
-                        self.handle_original_tab()
+                        self.handle_original_tab() """
        
 
 
@@ -910,8 +913,8 @@ class Main(object):
                 if not(i in contourTouched) :
                     contour = contours[i]
                     hierarchy_info = hierarchy[0][i]
-                    print("hierarchy_info: " + str(i))
-                    print(hierarchy_info)
+                    #print("hierarchy_info: " + str(i))
+                    #print(hierarchy_info)
                     if hierarchy_info[2] > -1: #tiene hijo
                         area_father = cv2.contourArea( contour )
                         cv2.drawContours( sumframe , [contour],  -1 , (255,0,0), 1, cv2.LINE_AA)
@@ -932,15 +935,15 @@ class Main(object):
                         area = area_father - brothers_area
                         area_total += area
                     else:
-                        print("No tiene hijo!!!")
+                        #print("No tiene hijo!!!")
                         area_child = cv2.contourArea( contour )
                         cv2.drawContours( sumframe , [contour],  -1 , (255,255,255), 1, cv2.LINE_AA)
                         area_total += area_child
-                    print("\n")
-                else:
-                    print("El contorno tocado {}".format(i)  )
+                    #print("\n")
+                
+                   # print("El contorno tocado {}".format(i)  )
             #fin For
-            print( "El area total es: {}".format( area_total )  )
+           # print( "El area total es: {}".format( area_total )  )
 
         #--------------------------------------------------------------//
 
