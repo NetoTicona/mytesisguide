@@ -19,6 +19,7 @@ class Main(object):
         self.master = master
         self.cam = None
         backgroundcolor = "#F5F5DC"
+        self.exportable_var = IntVar() 
         # frames
         mainFrame = Frame(self.master)
         mainFrame.pack()
@@ -27,7 +28,9 @@ class Main(object):
         self.cursor = self.connect.cursor()
 
         #self.serial_port = serial.Serial('COM13', 9600)
-        self.serial_port = serial.Serial('COM14', 9600)
+        #self.serial_port = serial.Serial('COM8', 9600)
+        #self.serial_port = serial.Serial('COM1', 9600)
+        self.serial_port = serial.Serial('COM15', 9600)
 
         self.stop_thread_flag = False
         self.arduino_data_var = StringVar()
@@ -71,10 +74,22 @@ class Main(object):
             centerLeftFrameResult, textvariable=self.arduino_data_var, font="arial 12 bold", bg=backgroundcolor)
         self.label_peso.pack(side=LEFT, padx=10)
         # Create and place the second label with text "Resultado: Exportable"
-        self.label_resultado = Label(
+
+
+        #------------ REsultado string (descomentar) ----------------//
+        """ self.label_resultado = Label(
             centerLeftFrameResult, text="Resultado: Exportable", font="arial 12 bold", bg=backgroundcolor)
-        self.label_resultado.pack(side=LEFT, padx=10)
-        centerLeftFrameResult.columnconfigure(0, weight=1)  #
+        self.label_resultado.pack(side=LEFT, padx=10) """
+
+        #---------cehckBox-------------/
+        self.checkbox_exportable = Checkbutton( centerLeftFrameResult, text="Exportable?", variable=self.exportable_var, font="arial 12 bold", bg=backgroundcolor)
+        self.checkbox_exportable.pack(side=LEFT, padx=10)
+        #------------------------------/
+
+        centerLeftFrameResult.columnconfigure(0, weight=1)  
+
+
+
         # ======= 3 Button =========
         self.btnbook_ign = Button(centerLeftFrame, text='Encendido',
                                   compound=LEFT, font='arial 12 bold', command=self.lets_start, state="normal")
@@ -512,16 +527,23 @@ class Main(object):
                     color_y = json.dumps( obj_y )
                     predominant = self.getBigArea( color_g,color_y,color_r )
 
-                    """ dataTraining_sql = "insert into mangoe_training (peso , img_url , red_area, green_area , yellow_area , predominant_color) values ( %s , %s ,%s , %s ,%s , %s ) "
-                    values = ( str(self.weight ), str( capture_filename ) ,str(_weight_red) , str( _weight_green ) , str( _weight_yellow ) , str( predominant ) )
+
+
+
+                    exportable_value = self.exportable_var.get()
+
+
+
+                    dataTraining_sql = "insert into mangoe_training (peso , img_url , red_area, green_area , yellow_area , predominant_color , exportable ) values ( %s , %s ,%s , %s ,%s , %s , %s ) "
+                    values = ( str(self.weight ), str( capture_filename ) ,str(_weight_red) , str( _weight_green ) , str( _weight_yellow ) , str( predominant ) , str( exportable_value ) )
                     self.cursor.execute( dataTraining_sql , values)
-                    self.connect.commit() """
+                    self.connect.commit()
                     result = messagebox.showinfo("Success", "Se capturó correctamente")
-                    """ if result == "ok":
+                    if result == "ok":
                         #self.tab_change_enabled = True
                         print("Boton de capture after ok")
                         self.display_frame = True
-                        self.handle_original_tab() """
+                        self.handle_original_tab()
        
 
 
@@ -613,11 +635,7 @@ class Main(object):
 
     def start_camera_orig(self):
 
-
-
         if self.cam is not None and self.display_frame :
-
-            
 
             ret, frame = self.cam.read()
             if self.initiale_aspect:
@@ -688,9 +706,9 @@ class Main(object):
                     im = Image.fromarray(_frame_yellow)
                     img = ImageTk.PhotoImage(image=im)
                     # -------------------  -------------------------#
-                    self.video_label_i.configure(image=img)
-                    self.video_label_i.image = img
-                    self.video_label_i.after(10, self.start_camera_orig)
+                    self.video_label_i.configure(image=img) 
+                    self.video_label_i.image = img 
+                    self.video_label_i.after(10, self.start_camera_orig) 
                 else:
                   print("ret no es True")
         else:  
@@ -948,10 +966,6 @@ class Main(object):
         #--------------------------------------------------------------//
 
         return sumframe , area_total      
-
-
-
-
 
     def on_closing(self):
         print("cerrando ventana")

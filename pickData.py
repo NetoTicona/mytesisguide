@@ -157,9 +157,9 @@ class Main(object):
         print( self.exportable_points )
         columns = {'a': [], 'b': [], 'z': []}
         for entry in self.exportable_points:
-            columns['a'].append(entry[0][0])
-            columns['b'].append(entry[0][1])
-            columns['z'].append(entry[1])
+            columns['a'].append(entry[0][0])    
+            columns['b'].append(entry[0][1])    
+            columns['z'].append(entry[1])       
 
         # Create a DataFrame
         df = pd.DataFrame(columns)
@@ -229,3 +229,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+""" en que nos basamos para esa distribucvion 
+por que 0.1 verde 0.5 amarillo 1 rojo 
+si no seleccionamos los amarillos como se llama ese tipo de muestreo? cual es el fundamento que  """
