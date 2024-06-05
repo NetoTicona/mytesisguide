@@ -29,8 +29,8 @@ class Main(object):
 
         #self.serial_port = serial.Serial('COM13', 9600)
         #self.serial_port = serial.Serial('COM8', 9600)
-        #self.serial_port = serial.Serial('COM1', 9600)
-        self.serial_port = serial.Serial('COM15', 9600)
+        self.serial_port = serial.Serial('COM16', 9600)
+        #self.serial_port = serial.Serial('COM15', 9600)
 
         self.stop_thread_flag = False
         self.arduino_data_var = StringVar()
@@ -122,15 +122,20 @@ class Main(object):
         self.tab1_icon = PhotoImage(file='icon/red.png')
         self.tab2_icon = PhotoImage(file='icon/green.png')
         self.tab3_icon = PhotoImage(file='icon/yellow.png')
+        self.tab4_icon = PhotoImage(file='icon/yellow.png')
         self.tab1 = ttk.Frame(self.tabs)
         self.tab2 = ttk.Frame(self.tabs)
         self.tab3 = ttk.Frame(self.tabs)
+        self.tab4 = ttk.Frame(self.tabs)
         self.tabs.add(self.tab1, text='rojo',
                       image=self.tab1_icon, compound=LEFT)
         self.tabs.add(self.tab2, text='verde',
                       image=self.tab2_icon, compound=LEFT)
         self.tabs.add(self.tab3, text='amarillo',
                       image=self.tab3_icon, compound=LEFT)
+        self.tabs.add(self.tab4, text='manchas',
+                image=self.tab3_icon, compound=LEFT)
+
         # ===== Primera botonera tab 1=========
 
         def update_label_a1(event):
@@ -206,6 +211,36 @@ class Main(object):
         def update_label_c6(event):
             self.track1labc6.config(
                 text="Value máximo: {}".format(self.scalec6.get()))
+
+
+        # ===== Cuarta botonera tab 4========= #
+        def update_label_d1(event):
+            self.track1labd1.config(
+                text="Hue mínimo: {}".format(self.scaled1.get()))
+
+        def update_label_d2(event):
+            self.track1labd2.config(
+                text="Hue máximo: {}".format(self.scaled2.get()))
+
+        def update_label_d3(event):
+            self.track1labd3.config(
+                text="Saturación mínima: {}".format(self.scaled3.get()))
+
+        def update_label_d4(event):
+            self.track1labd4.config(
+                text="Saturación máxima: {}".format(self.scaled4.get()))
+
+        def update_label_d5(event):
+            self.track1labd5.config(
+                text="Value mínimo: {}".format(self.scaled5.get()))
+
+        def update_label_d6(event):
+            self.track1labd6.config(
+                text="Value máximo: {}".format(self.scaled6.get()))
+
+
+
+
         # ====================== Primer Tab ==================================#
         self.track1laba1 = Label(self.tab1, text="Hue mínimo: 0")
         self.track1laba1.place(x=44, y=100-91)
@@ -299,6 +334,41 @@ class Main(object):
         self.scalec6 = Scale(self.tab3, from_=0, to=255, orient=HORIZONTAL,
                              length=200, showvalue=0, command=update_label_c6)
         self.scalec6.place(x=140, y=350-91)
+        # ====================== Cuarto Tab ==================================#
+        self.track1labd1 = Label(self.tab4, text="Hue mínimo: 0")
+        self.track1labd1.place(x=44, y=100-91)
+        self.scaled1 = Scale(self.tab4, from_=0, to=255, orient=HORIZONTAL,
+                             length=200, showvalue=0, command=update_label_d1)
+        self.scaled1.place(x=140, y=100-91)
+        self.track1labd2 = Label(self.tab4, text="Hue máximo: 0")
+        self.track1labd2.place(x=41, y=150-91)
+        self.scaled2 = Scale(self.tab4, from_=0, to=255, orient=HORIZONTAL,
+                             length=200, showvalue=0, command=update_label_d2)
+        self.scaled2.place(x=140, y=150-91)
+        self.track1labd3 = Label(self.tab4, text="Saturación mínima: 0")
+        self.track1labd3.place(x=9, y=200-91)
+        self.scaled3 = Scale(self.tab4, from_=0, to=255, orient=HORIZONTAL,
+                             length=200, showvalue=0, command=update_label_d3)
+        self.scaled3.place(x=140, y=200-91)
+        self.track1labd4 = Label(self.tab4, text="Saturación máxima: 0")
+        self.track1labd4.place(x=7, y=250-91)
+        self.scaled4 = Scale(self.tab4, from_=0, to=255, orient=HORIZONTAL,
+                             length=200, showvalue=0, command=update_label_d4)
+        self.scaled4.place(x=140, y=250-91)
+        self.track1labd5 = Label(self.tab4, text="Value mínimo: 0")
+        self.track1labd5.place(x=35, y=300-91)
+        self.scaled5 = Scale(self.tab4, from_=0, to=255, orient=HORIZONTAL,
+                             length=200, showvalue=0, command=update_label_d5)
+        self.scaled5.place(x=140, y=300-91)
+        self.track1labd6 = Label(self.tab4, text="Value máximo: 0")
+        self.track1labd6.place(x=34, y=350-91)
+        self.scaled6 = Scale(self.tab4, from_=0, to=255, orient=HORIZONTAL,
+                             length=200, showvalue=0, command=update_label_d6)
+        self.scaled6.place(x=140, y=350-91)
+
+
+
+
         # =============== center right frame ==============
         centerRightFrame = Frame(
             centerFrame, width=700, height=560, bg=backgroundcolor, borderwidth=0)
@@ -314,11 +384,13 @@ class Main(object):
         self.tab2_icon_vid = PhotoImage(file='icon/red.png')
         self.tab3_icon_vid = PhotoImage(file='icon/green.png')
         self.tab4_icon_vid = PhotoImage(file='icon/yellow.png')
+        self.tab5_icon_vid = PhotoImage(file='icon/yellow.png')
         # self.tabo_vid = ttk.Frame(self.tabs_vid  )
         self.tab1_vid = ttk.Frame(self.tabs_vid)
         self.tab2_vid = ttk.Frame(self.tabs_vid)
         self.tab3_vid = ttk.Frame(self.tabs_vid)
         self.tab4_vid = ttk.Frame(self.tabs_vid)
+        self.tab5_vid = ttk.Frame(self.tabs_vid)
         """ self.tabs_vid.add(self.tabo_vid, text='deff',
                       image=self.tabo_icon_vid, compound=LEFT , state="disabled" ) """
         self.tabs_vid.add(self.tab1_vid, text='original',
@@ -329,6 +401,9 @@ class Main(object):
                           image=self.tab3_icon_vid, compound=LEFT, state="disabled")
         self.tabs_vid.add(self.tab4_vid, text='yellow',
                           image=self.tab4_icon_vid, compound=LEFT, state="disabled")
+        self.tabs_vid.add(self.tab5_vid, text='mancha',
+                          image=self.tab5_icon_vid, compound=LEFT, state="disabled")
+                          
         self.tabs_vid.bind("<<NotebookTabChanged>>", self.on_tab_change)
         # ================ Tabs para videos ==============
         """ self.video_label_o = Label(self.tabo_vid)
@@ -341,6 +416,8 @@ class Main(object):
         self.video_label_g.pack()
         self.video_label_y = Label(self.tab4_vid)
         self.video_label_y.pack()
+        self.video_label_b = Label(self.tab5_vid)
+        self.video_label_b.pack()
 
     def lets_start(self):
             print("LESt START")
@@ -361,7 +438,7 @@ class Main(object):
             self.cursor = self.connect.cursor()
             self.cursor.execute("SELECT * from t_hsv")
             rows = self.cursor.fetchall()
-            # print("Valores de t_hsv table: ")
+            print("Valores de t_hsv table: ", rows)
             for row in rows:
                 if row[0] == 1:
                     # print("111")
@@ -387,8 +464,15 @@ class Main(object):
                     self.scalec4.set(int(row[5]))
                     self.scalec5.set(int(row[6]))
                     self.scalec6.set(int(row[7]))
-        
-         
+                elif row[0] == 7:
+                    # print("66")
+                    self.scaled1.set(int(row[2]))
+                    self.scaled2.set(int(row[3]))
+                    self.scaled3.set(int(row[4]))
+                    self.scaled4.set(int(row[5]))
+                    self.scaled5.set(int(row[6]))
+                    self.scaled6.set(int(row[7]))
+                 
 
     def shut_down(self):
         try:
@@ -403,6 +487,7 @@ class Main(object):
             self.tabs_vid.tab(self.tab2_vid, state="disabled")
             self.tabs_vid.tab(self.tab3_vid, state="disabled")
             self.tabs_vid.tab(self.tab4_vid, state="disabled")
+            self.tabs_vid.tab(self.tab5_vid, state="disabled")
             self.button1.config(state="disabled")
 
             self.btnbook_ign.config(state="normal")
@@ -431,6 +516,13 @@ class Main(object):
             self.scalec5.set(int(0))
             self.scalec6.set(int(0))
 
+            self.scaled1.set(int(0))
+            self.scaled2.set(int(0))
+            self.scaled3.set(int(0))
+            self.scaled4.set(int(0))
+            self.scaled5.set(int(0))
+            self.scaled6.set(int(0))
+
             if self.cam is not None:
                 self.cam = None
                 # self.cam.release()
@@ -456,6 +548,7 @@ class Main(object):
             self.tabs_vid.tab(self.tab2_vid, state="normal")
             self.tabs_vid.tab(self.tab3_vid, state="normal")
             self.tabs_vid.tab(self.tab4_vid, state="normal")
+            self.tabs_vid.tab(self.tab5_vid, state="normal")
 
             self.button1.config(state="normal")
             self.btnbook_ign.config(state="disabled")
@@ -518,6 +611,16 @@ class Main(object):
                     y_val_max = self.scalec6.get()
                     _frame_yellow,_weight_yellow = self.process_frame( frame_yellow , y_hue_min,y_sat_min,y_val_min,y_hue_max,y_sat_max,y_val_max , _frame_green , (0,0,255))
 
+                    #Area _ Total
+                    t_hue_min = 0
+                    t_hue_max = 255
+                    t_sat_min = 83
+                    t_sat_max = 255
+                    t_val_min = 50
+                    t_val_max = 255
+                    _f,_total = self.process_frame( frame_yellow , t_hue_min,t_sat_min,t_val_min,t_hue_max,t_sat_max,t_val_max , _frame_green , (0,0,255))
+
+
                     obj_g = { "id":1, "weight":_weight_green,"description":"Verde" }
                     obj_r = { "id":2, "weight":_weight_red,"description":"Rojo" }
                     obj_y = { "id":3, "weight":_weight_yellow,"description":"Amarillo" }
@@ -534,8 +637,8 @@ class Main(object):
 
 
 
-                    dataTraining_sql = "insert into mangoe_training (peso , img_url , red_area, green_area , yellow_area , predominant_color , exportable ) values ( %s , %s ,%s , %s ,%s , %s , %s ) "
-                    values = ( str(self.weight ), str( capture_filename ) ,str(_weight_red) , str( _weight_green ) , str( _weight_yellow ) , str( predominant ) , str( exportable_value ) )
+                    dataTraining_sql = "insert into mangoe_training (peso , img_url , red_area, green_area , yellow_area , predominant_color , exportable , area_total ) values ( %s , %s ,%s , %s ,%s , %s , %s, %s ) "
+                    values = ( str(self.weight ), str( capture_filename ) ,str(_weight_red) , str( _weight_green ) , str( _weight_yellow ) , str( predominant ) , str( exportable_value ) , str( _total ) )
                     self.cursor.execute( dataTraining_sql , values)
                     self.connect.commit()
                     result = messagebox.showinfo("Success", "Se capturó correctamente")
@@ -616,8 +719,20 @@ class Main(object):
             v_sat_max = self.scalec4.get()
             v_val_min = self.scalec5.get()
             v_val_max = self.scalec6.get()
-            self.update_tab_values(6, v_hue_min, v_hue_max,
+            self.update_tab_values(7, v_hue_min, v_hue_max,
                                 v_sat_min, v_sat_max, v_val_min, v_val_max)
+
+            b_hue_min = self.scaled1.get()
+            b_hue_max = self.scaled2.get()
+            b_sat_min = self.scaled3.get()
+            b_sat_max = self.scaled4.get()
+            b_val_min = self.scaled5.get()
+            b_val_max = self.scaled6.get()
+            self.update_tab_values(7, b_hue_min, b_hue_max,
+                                b_sat_min, b_sat_max, b_val_min, b_val_max)
+
+
+
         except Exception as e:
             messagebox.showerror("Error", "Ocurrio error al guardar")
             print("Error al extraer data: ", e)
@@ -800,6 +915,36 @@ class Main(object):
             else:
                 print("ret no es True")
 
+    def start_camera_black(self):
+        if self.cam is not None:
+            ret, frame = self.cam.read()
+            if ret == True:
+                b_hue_min = self.scaled1.get()
+                b_hue_max = self.scaled2.get()
+                b_sat_min = self.scaled3.get()
+                b_sat_max = self.scaled4.get()
+                b_val_min = self.scaled5.get()
+                b_val_max = self.scaled6.get()
+
+                _frame,_weight = self.process_frame( frame , b_hue_min,b_sat_min,b_val_min,b_hue_max,b_sat_max,b_val_max, frame , (24,147,255) )
+
+                #print( f"El área total rojo es: { weight }"  )
+                font = cv2.FONT_HERSHEY_COMPLEX
+                cv2.putText( _frame, f"El área con manchas es: {_weight}" , (30,450), font, 0.68 , (24,147,255),1,cv2.LINE_AA  )
+
+                #print( f"El área total amarillo es: { _weight }"  )
+                frame_rgb = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
+                im_black = Image.fromarray(frame_rgb)
+                img_black = ImageTk.PhotoImage(image=im_black)
+                # -------------------  -------------------------#
+                self.video_label_b.configure(image=img_black)
+                self.video_label_b.image = img_black
+                self.video_label_b.after(10, self.start_camera_black)
+            else:
+                print("ret no es True")
+
+
+
     def update_database(self, tab_name, column_name, new_value):
         self.cursor.execute("select * from t_hsv")
         rows = self.cursor.fetchall()
@@ -824,6 +969,9 @@ class Main(object):
             elif selected_tab_index == 3:
                 # Action for the 'yellow' tab
                 self.handle_yellow_tab()
+            elif selected_tab_index == 4:
+                self.handle_black_tab()
+
         else:
             print("tab_change_enabled Dehabilitado")
     # Separate functions for each tab change
@@ -885,6 +1033,19 @@ class Main(object):
         self.cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         self.start_camera_yellow()
 
+    def handle_black_tab(self):
+        if self.cam is not None:
+            self.cam.release()
+            cv2.destroyAllWindows()
+            self.cam = None
+        self.setTimeout(self.my_function_black, 100)
+
+    def my_function_black(self):
+        self.cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        self.start_camera_black()
+
+
+
     def getBigArea( self , object_v , object_a , object_r ):
         color = ""
         object_v = json.loads(object_v)
@@ -905,13 +1066,13 @@ class Main(object):
         lower_red = np.array([hue_min, sat_min, val_min])
         upper_red = np.array([hue_max, sat_max, val_max])
         mask_red = cv2.inRange(hsv, lower_red, upper_red)
-        #(blur)imgBlur = cv2.GaussianBlur( mask_red , (5,5) , 1 )
-        kernel = np.ones( (2,2) , np.uint8 )
-        #(blur)erosion = cv2.erode( imgBlur , kernel , iterations=2 )
-        #(blur)dilatacion = cv2.dilate( erosion , kernel , iterations=3 )
-        kernelTomorf = np.ones( (3,3) , np.uint8 )
-        erosion = cv2.erode( mask_red , kernelTomorf , iterations=4 )
-        dilatacion = cv2.dilate( erosion , kernelTomorf , iterations=4 )
+       
+        kernel_dim = 3
+        kernel = np.ones( (kernel_dim,kernel_dim) , np.uint8 )
+
+
+        erosion = cv2.erode( mask_red , kernel , iterations=1 )
+        dilatacion = cv2.dilate( erosion , kernel , iterations=2 )
         closing = cv2.morphologyEx( dilatacion , cv2.MORPH_CLOSE , kernel )
 
 

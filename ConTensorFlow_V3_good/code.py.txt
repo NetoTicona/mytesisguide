@@ -1,0 +1,66 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import tensorflow as tf
+from tensorflow.keras import layers
+
+from google.colab import drive
+drive.mount("/content/drive",force_remount=True)
+
+path="/content/drive/MyDrive/mangoe_training/order_training_percentages_v2.xlsx"
+raw_data=pd.read_excel(path,sheet_name=0)
+dataset=raw_data.copy()
+dataset.head(8)
+
+data_train = dataset.sample( frac=0.90 , random_state=0 )
+data_test = dataset.drop( data_train.index )
+
+#Entradas de entrenamiento -> data_train
+#Salidas de entrenamiento -> train_output
+train_output = data_train.pop( "exportable" )
+print("Train Output: ")
+print( train_output )
+print("data TRain")
+print(data_train)
+
+#Entradas de test -> data_test
+#Salidas de test -> test_output
+test_output = data_test.pop( "exportable" )
+
+
+train_stats = data_train.describe()
+train_stats = train_stats.transpose()
+
+print("Mean: " , train_stats["mean"] )
+print( "Std: " , train_stats["std"]  )
+
+train_input = data_train
+test_input  = data_test
+
+modelo= tf.keras.Sequential([
+    tf.keras.layers.Dense( 32 , input_shape=[4] , activation="relu" ),
+    tf.keras.layers.Dense( 32 , activation="relu" ),
+    tf.keras.layers.Dense( 16 , activation="relu" ),
+
+    tf.keras.layers.Dense(1 , activation="sigmoid" )
+])
+
+
+op = tf.keras.optimizers.RMSprop(0.0001)
+#modelo.compile( optimizer=op , loss=["mae"] )
+modelo.compile(optimizer=op, loss="binary_crossentropy", metrics=["accuracy"])
+#modelo.compile(optimizer=op, loss="sparse_categorical_crossentropy", metrics=["accuracy"])  # Use sparse categorical crossentropy for binary classification
+modelo.summary()
+history = modelo.fit( train_input , train_output , epochs=16000 )
+
+##Guardar una red neuronal en archivos *.json y *.h5
+path_json="/content/drive/MyDrive/mangoe_training/carrera.json"
+path_h5="/content/drive/MyDrive/mangoe_training/carrera.h5"
+
+with open(path_json,"w") as json_file:
+  modelo_json=modelo.to_json()
+  json_file.write(modelo_json)
+json_file.close()
+
+modelo.save_weights(path_h5)
+print("Modelo Guardado!!!")
