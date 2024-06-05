@@ -12,6 +12,9 @@ import os
 import datetime
 import json
 import tkinter.messagebox as messagebox
+import pandas as pd
+import tensorflow as tf
+
 
 
 class Main(object):
@@ -20,17 +23,22 @@ class Main(object):
         self.cam = None
         backgroundcolor = "#F5F5DC"
         self.exportable_var = IntVar() 
-        # frames
+    
         mainFrame = Frame(self.master)
         mainFrame.pack()
         self.connect = pymysql.connect(
             host="localhost", user="root", passwd="", database="db_image_hsv")
         self.cursor = self.connect.cursor()
 
-        #self.serial_port = serial.Serial('COM13', 9600)
-        #self.serial_port = serial.Serial('COM8', 9600)
-        self.serial_port = serial.Serial('COM16', 9600)
-        #self.serial_port = serial.Serial('COM15', 9600)
+        self.red = 0
+        self.yellow = 0
+        self.green = 0
+        self.weight_eval = 0
+        self.total = 0
+
+      
+        self.serial_port = serial.Serial('COM8', 9600)
+       
 
         self.stop_thread_flag = False
         self.arduino_data_var = StringVar()
@@ -39,7 +47,7 @@ class Main(object):
         self.weight = 0
         self.initiale_aspect = False
         self.display_frame = True
-        # ================================================= top frame =============================
+        # ================================================= Superior frame =============================
         topFrame = Frame(mainFrame, width=1100, height=110,
                          bg=backgroundcolor, padx=20, borderwidth=2)
         topFrame.pack(side=TOP, fill=X)
@@ -47,50 +55,50 @@ class Main(object):
         self.top_image = self.top_image.subsample(2, 2)
         self.top_image_label = Label(topFrame, image=self.top_image)
         self.top_image_label.grid(
-            row=0, column=0, padx=(0, 10))  # Add padx for spacing
-        self.heading = Label(topFrame, text='Universidad nacional de san agustin\n "Diseño e Implementación de un Sistema Clasificador de Mangos\n Usando una Red Neuronal y Visión por Computadora" ',
+            row=0, column=0, padx=(0, 10))  
+        self.heading = Label(topFrame, text='Universidad Nacional de San Agustin\n "Diseño e Implementación de un Sistema Clasificador de Mangos\n Usando una Red Neuronal y Visión por Computadora" ',
                              font="arial 18 bold", fg='#003f8a', bg=backgroundcolor)
         # Center align vertically
         self.heading.grid(row=0, column=1, sticky="nsew")
         topFrame.columnconfigure(1, weight=1)
         topFrame.rowconfigure(0, weight=1)
-        # =================================================== center frame===========================
+        # =================================================== Frame central ===========================
         centerFrame = Frame(mainFrame, width=1200,
                             relief=RIDGE,  borderwidth=0, height=560)
         centerFrame.pack(side=TOP)
-        # =============== center left frame =============
+        # =============== frame central izquierdo =============
         centerLeftFrame = Frame(
             centerFrame, width=500, height=560, bg=backgroundcolor,  borderwidth=0)
         centerLeftFrame.pack(side=LEFT)
         centerLeftFrame.pack_propagate(False)
-        # ====== Results ===========
+        # ====== Resultados ===========
         centerLeftFrameResult = Frame(centerLeftFrame, width=400,
                                       height=50, bg=backgroundcolor,  borderwidth=0)
         centerLeftFrameResult.place(in_=centerLeftFrame,
                                     anchor="center", relx=0.5, rely=0.92)
         centerLeftFrameResult.pack_propagate(False)
-        # Create and place the first label with text "Peso: 45Kg"
+       
         self.label_peso = Label(
             centerLeftFrameResult, textvariable=self.arduino_data_var, font="arial 12 bold", bg=backgroundcolor)
         self.label_peso.pack(side=LEFT, padx=10)
-        # Create and place the second label with text "Resultado: Exportable"
+       
 
 
-        #------------ REsultado string (descomentar) ----------------//
-        """ self.label_resultado = Label(
-            centerLeftFrameResult, text="Resultado: Exportable", font="arial 12 bold", bg=backgroundcolor)
-        self.label_resultado.pack(side=LEFT, padx=10) """
+        #---------PresentResults-----------//
+        self.label_resultado = Label(
+            centerLeftFrameResult, text="-", font="arial 12 bold", bg=backgroundcolor)
+        self.label_resultado.pack(side=LEFT, padx=10)
 
-        #---------cehckBox-------------/
-        self.checkbox_exportable = Checkbutton( centerLeftFrameResult, text="Exportable?", variable=self.exportable_var, font="arial 12 bold", bg=backgroundcolor)
-        self.checkbox_exportable.pack(side=LEFT, padx=10)
+        #---------checkBox-------------/
+        """self.checkbox_exportable = Checkbutton( centerLeftFrameResult, text="Exportable?", variable=self.exportable_var, font="arial 12 bold", bg=backgroundcolor)
+        self.checkbox_exportable.pack(side=LEFT, padx=10) """
         #------------------------------/
 
         centerLeftFrameResult.columnconfigure(0, weight=1)  
 
 
 
-        # ======= 3 Button =========
+        # ======= Botones =========
         self.btnbook_ign = Button(centerLeftFrame, text='Encendido',
                                   compound=LEFT, font='arial 12 bold', command=self.lets_start, state="normal")
         self.btnbook_ign.place(x=10 + 75, y=10)
@@ -102,21 +110,25 @@ class Main(object):
                                        compound=LEFT, font='arial 12 bold', command=self.shut_down, state="disabled")
         self.btnbook_shutdown.place(x=190 + 75, y=10)
 
-        self.btnbook_capture = Button(centerLeftFrame, text='capturar',
-                                      compound=LEFT, font='arial 12 bold', command=self.captureTwo, state="disabled")
+        """ self.btnbook_capture = Button(centerLeftFrame, text='capturar',
+                                      compound=LEFT, font='arial 12 bold', command=self.captureTwo, state="disabled") """
+
+        self.btnbook_capture = Button(centerLeftFrame, text='Evaluar',
+                                compound=LEFT, font='arial 12 bold', command=self.evaluate, state="disabled")
+
         self.btnbook_capture.place(x=270 + 75, y=10)
 
-        # ======= innerFrame =======
+        # ======= frame interno =======
         innerLeftFrame = Frame(centerLeftFrame, width=400,
                                height=400, bg=backgroundcolor,  borderwidth=0)
         innerLeftFrame.place(in_=centerLeftFrame,
                              anchor="center", relx=0.5, rely=0.46)
-        # Create the buttons
+       
         self.button1 = Button(innerLeftFrame, text="Guardar",
                               font="arial 12 bold", command=self.saveAllValues, state="disabled")
         self.button1.place(relx=0.86, rely=0.98, anchor="s")
-        # ============= TABs 1 ============= #
-        # padre 345 , tab que sea -30 = 315
+        # ============= Tabs 1 ============= #
+       
         self.tabs = ttk.Notebook(innerLeftFrame, width=400, height=315)
         self.tabs.place(relx=0.5, rely=0.45, anchor="center")
         self.tab1_icon = PhotoImage(file='icon/red.png')
@@ -133,8 +145,8 @@ class Main(object):
                       image=self.tab2_icon, compound=LEFT)
         self.tabs.add(self.tab3, text='amarillo',
                       image=self.tab3_icon, compound=LEFT)
-        self.tabs.add(self.tab4, text='manchas',
-                image=self.tab3_icon, compound=LEFT)
+        """ self.tabs.add(self.tab4, text='manchas',
+                image=self.tab3_icon, compound=LEFT) """
 
         # ===== Primera botonera tab 1=========
 
@@ -369,14 +381,14 @@ class Main(object):
 
 
 
-        # =============== center right frame ==============
+        
         centerRightFrame = Frame(
             centerFrame, width=700, height=560, bg=backgroundcolor, borderwidth=0)
         centerRightFrame.pack(side=RIGHT)
-        centerRightFrame.pack_propagate(False)  # previene auto ajuste
+        centerRightFrame.pack_propagate(False)  
         """ self.video_label = Label(centerRightFrame)
         self.video_label.pack() """
-        # ================ Tabs para videos ==============
+       
         self.tabs_vid = ttk.Notebook(centerRightFrame, width=600, height=460)
         self.tabs_vid.place(relx=0.5, rely=0.475, anchor="center")
         """ self.tabo_icon_vid = PhotoImage(file='icon/original.png') """
@@ -384,13 +396,13 @@ class Main(object):
         self.tab2_icon_vid = PhotoImage(file='icon/red.png')
         self.tab3_icon_vid = PhotoImage(file='icon/green.png')
         self.tab4_icon_vid = PhotoImage(file='icon/yellow.png')
-        self.tab5_icon_vid = PhotoImage(file='icon/yellow.png')
+        """ self.tab5_icon_vid = PhotoImage(file='icon/yellow.png') """
         # self.tabo_vid = ttk.Frame(self.tabs_vid  )
         self.tab1_vid = ttk.Frame(self.tabs_vid)
         self.tab2_vid = ttk.Frame(self.tabs_vid)
         self.tab3_vid = ttk.Frame(self.tabs_vid)
         self.tab4_vid = ttk.Frame(self.tabs_vid)
-        self.tab5_vid = ttk.Frame(self.tabs_vid)
+        """ self.tab5_vid = ttk.Frame(self.tabs_vid) """
         """ self.tabs_vid.add(self.tabo_vid, text='deff',
                       image=self.tabo_icon_vid, compound=LEFT , state="disabled" ) """
         self.tabs_vid.add(self.tab1_vid, text='original',
@@ -401,8 +413,8 @@ class Main(object):
                           image=self.tab3_icon_vid, compound=LEFT, state="disabled")
         self.tabs_vid.add(self.tab4_vid, text='yellow',
                           image=self.tab4_icon_vid, compound=LEFT, state="disabled")
-        self.tabs_vid.add(self.tab5_vid, text='mancha',
-                          image=self.tab5_icon_vid, compound=LEFT, state="disabled")
+        """ self.tabs_vid.add(self.tab5_vid, text='mancha',
+                          image=self.tab5_icon_vid, compound=LEFT, state="disabled") """
                           
         self.tabs_vid.bind("<<NotebookTabChanged>>", self.on_tab_change)
         # ================ Tabs para videos ==============
@@ -416,22 +428,18 @@ class Main(object):
         self.video_label_g.pack()
         self.video_label_y = Label(self.tab4_vid)
         self.video_label_y.pack()
-        self.video_label_b = Label(self.tab5_vid)
-        self.video_label_b.pack()
+        """ self.video_label_b = Label(self.tab5_vid)
+        self.video_label_b.pack() """
 
     def lets_start(self):
             print("LESt START")
             self.tabs_vid.tab(self.tab1_vid, state="normal")
             self.tab_change_enabled = True
-            #self.tabs_vid.tab(self.tab2_vid, state="normal")
-            #self.tabs_vid.tab(self.tab3_vid, state="normal")
-            #self.tabs_vid.tab(self.tab4_vid, state="normal")
-
-            #self.button1.config(state="normal")
+        
             self.btnbook_ign.config(state="disabled")
             self.btnbook_start.config(state="normal")
             self.btnbook_shutdown.config(state="normal")
-            #
+            
             self.initiale_aspect = True
             self.tabs_vid.select(self.tab1_vid)
 
@@ -441,7 +449,7 @@ class Main(object):
             print("Valores de t_hsv table: ", rows)
             for row in rows:
                 if row[0] == 1:
-                    # print("111")
+                   
                     self.scalea1.set(int(row[2]))
                     self.scalea2.set(int(row[3]))
                     self.scalea3.set(int(row[4]))
@@ -449,7 +457,7 @@ class Main(object):
                     self.scalea5.set(int(row[6]))
                     self.scalea6.set(int(row[7]))
                 elif row[0] == 3:
-                    # print("33")
+                   
                     self.scaleb1.set(int(row[2]))
                     self.scaleb2.set(int(row[3]))
                     self.scaleb3.set(int(row[4]))
@@ -457,37 +465,29 @@ class Main(object):
                     self.scaleb5.set(int(row[6]))
                     self.scaleb6.set(int(row[7]))
                 elif row[0] == 6:
-                    # print("66")
+                   
                     self.scalec1.set(int(row[2]))
                     self.scalec2.set(int(row[3]))
                     self.scalec3.set(int(row[4]))
                     self.scalec4.set(int(row[5]))
                     self.scalec5.set(int(row[6]))
                     self.scalec6.set(int(row[7]))
-                elif row[0] == 7:
-                    # print("66")
-                    self.scaled1.set(int(row[2]))
-                    self.scaled2.set(int(row[3]))
-                    self.scaled3.set(int(row[4]))
-                    self.scaled4.set(int(row[5]))
-                    self.scaled5.set(int(row[6]))
-                    self.scaled6.set(int(row[7]))
+           
                  
 
     def shut_down(self):
         try:
             print("Shut Down")
+            self.label_resultado.config( text="-" )
             self.arduino_data_var.set("Peso: 0 g")
             self.stop_arduino_thread()
             self.tab_change_enabled = False
-            #self.initiale_aspect = False
-            # self.stop_thread_flag = True
-            # self.cam = None
+
             self.tabs_vid.tab(self.tab1_vid, state="disabled")
             self.tabs_vid.tab(self.tab2_vid, state="disabled")
             self.tabs_vid.tab(self.tab3_vid, state="disabled")
             self.tabs_vid.tab(self.tab4_vid, state="disabled")
-            self.tabs_vid.tab(self.tab5_vid, state="disabled")
+            """ self.tabs_vid.tab(self.tab5_vid, state="disabled") """
             self.button1.config(state="disabled")
 
             self.btnbook_ign.config(state="normal")
@@ -525,10 +525,9 @@ class Main(object):
 
             if self.cam is not None:
                 self.cam = None
-                # self.cam.release()
-                # cv2.destroyAllWindows()
+              
                 print("Se finalizó")
-            # self.clean_center_right_frame()
+           
         except Exception as e:
             messagebox.showerror("Error", "Ocurrio error al apagar")
             print("Error al extraer data: ", e)
@@ -548,7 +547,7 @@ class Main(object):
             self.tabs_vid.tab(self.tab2_vid, state="normal")
             self.tabs_vid.tab(self.tab3_vid, state="normal")
             self.tabs_vid.tab(self.tab4_vid, state="normal")
-            self.tabs_vid.tab(self.tab5_vid, state="normal")
+            """ self.tabs_vid.tab(self.tab5_vid, state="normal") """
 
             self.button1.config(state="normal")
             self.btnbook_ign.config(state="disabled")
@@ -556,22 +555,16 @@ class Main(object):
             self.btnbook_shutdown.config(state="normal")
             self.btnbook_capture.config(state="normal")
             
-            # ======== cam ========#
-            # global cam
-            # cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            # self.start_camera_orig()
-            # ======== SQL ========#
-            # print("Vamos a iniciar")
-            # self.cursor.close()
+         
         except Exception as e:
             messagebox.showerror("Error", "Ocurrio error al iniciar")
             print("Error al extraer data: ", e)
 
     def captureTwo(self):
 
-        #self.tab_change_enabled = False
+       
         print("Boton de capture 2")
-        #self.display_frame = False
+       
         try:
 
             if self.cam is not None :
@@ -630,12 +623,7 @@ class Main(object):
                     color_y = json.dumps( obj_y )
                     predominant = self.getBigArea( color_g,color_y,color_r )
 
-
-
-
                     exportable_value = self.exportable_var.get()
-
-
 
                     dataTraining_sql = "insert into mangoe_training (peso , img_url , red_area, green_area , yellow_area , predominant_color , exportable , area_total ) values ( %s , %s ,%s , %s ,%s , %s , %s, %s ) "
                     values = ( str(self.weight ), str( capture_filename ) ,str(_weight_red) , str( _weight_green ) , str( _weight_yellow ) , str( predominant ) , str( exportable_value ) , str( _total ) )
@@ -643,7 +631,7 @@ class Main(object):
                     self.connect.commit()
                     result = messagebox.showinfo("Success", "Se capturó correctamente")
                     if result == "ok":
-                        #self.tab_change_enabled = True
+                       
                         print("Boton de capture after ok")
                         self.display_frame = True
                         self.handle_original_tab()
@@ -654,11 +642,32 @@ class Main(object):
             messagebox.showerror( "Error" , "Error al capturar datos" )
             print("Error al extraer data: ", e)
 
-       
+    def evaluate( self ):
+        path_json = "neural_model/carrera_32_64_32_1.json" #Esta God
+        path_h5 = "neural_model/carrera_32_64_32_1.h5"
+        with open(path_json, "r") as json_file:
+            loaded_model_json = json_file.read()
+        loaded_model = tf.keras.models.model_from_json(loaded_model_json)
+        loaded_model.load_weights(path_h5)
+
+        df=pd.DataFrame({"weight": [0.350] , "red_percent":[0.5], "green_percent":[0], "yellow_percent":[0]  })
+        predic = loaded_model.predict( df )
+        print("La prediccion es: ", predic )
+
+        if(  predic >= 0.5 ):
+            new_label_text = "Resultado: Exportable"
+        else:
+            new_label_text = "Resultado: Venta en mercado local"
+        
+        self.label_resultado.config( text=new_label_text )
+
+        print( "Porcentaje Rojo:{} , Percent Verde:{} , Percent yellow{} , Peso:{} ". format( self.red ,  self.green , self.yellow , self.weight_eval ) )
+
+        return   
 
 
     def start_arduino_thread(self):
-        # Reset the flag when starting the thread.
+       
         self.stop_thread_flag = False
         self.arduino_thread = threading.Thread(target=self.read_arduino_data)
         self.arduino_thread.daemon = True
@@ -669,17 +678,18 @@ class Main(object):
 
     def read_arduino_data(self):
         while not self.stop_thread_flag:
-            #print("_flag: " + str(self.stop_thread_flag))
+           
             try:
-                # self.serial_port.write(b'START')
+                
                 arduino_data = self.serial_port.readline().decode().strip()
-                #print("data: " + arduino_data)
+               
                 if not self.stop_thread_flag:
                     self.weight = arduino_data
                     self.arduino_data_var.set(f"Peso: {arduino_data} g")
+                    self.weight_eval =  arduino_data
                 else:
                     self.arduino_data_var.set("Peso: 0 g")
-                # time.sleep(1)
+               
             except serial.SerialException:
                 print("Serial port error")
             except Exception as e:
@@ -694,7 +704,7 @@ class Main(object):
 
     def saveAllValues(self):
         try:
-            # Print values from Tab 1
+            
             r_hue_min = self.scalea1.get()
             r_hue_max = self.scalea2.get()
             r_sat_min = self.scalea3.get()
@@ -703,7 +713,7 @@ class Main(object):
             r_val_max = self.scalea6.get()
             self.update_tab_values(1, r_hue_min, r_hue_max,
                                 r_sat_min, r_sat_max, r_val_min, r_val_max)
-            # Print values from Tab 2
+            
             a_hue_min = self.scaleb1.get()
             a_hue_max = self.scaleb2.get()
             a_sat_min = self.scaleb3.get()
@@ -712,7 +722,7 @@ class Main(object):
             a_val_max = self.scaleb6.get()
             self.update_tab_values(3, a_hue_min, a_hue_max,
                                 a_sat_min, a_sat_max, a_val_min, a_val_max)
-            # Print values from Tab 3
+            
             v_hue_min = self.scalec1.get()
             v_hue_max = self.scalec2.get()
             v_sat_min = self.scalec3.get()
@@ -775,6 +785,7 @@ class Main(object):
                 frame_red = frame.copy()
                 frame_green = frame.copy()
                 frame_yellow = frame.copy()
+                frame_areatot = frame.copy()
                 if ret == True:
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -802,6 +813,15 @@ class Main(object):
                     y_val_max = self.scalec6.get()
                     _frame_yellow,_weight_yellow = self.process_frame( frame_yellow , y_hue_min,y_sat_min,y_val_min,y_hue_max,y_sat_max,y_val_max , _frame_green , (255,147,24))
 
+                    #Area _ Total
+                    t_hue_min = 0
+                    t_hue_max = 255
+                    t_sat_min = 83
+                    t_sat_max = 255
+                    t_val_min = 50
+                    t_val_max = 255
+                    _f,_total = self.process_frame( frame_areatot , t_hue_min,t_sat_min,t_val_min,t_hue_max,t_sat_max,t_val_max , frame_areatot , (0,0,0))
+
                     obj_g = { "id":1, "weight":_weight_green,"description":"Verde" }
                     obj_r = { "id":2, "weight":_weight_red,"description":"Rojo" }
                     obj_y = { "id":3, "weight":_weight_yellow,"description":"Amarillo" }
@@ -811,11 +831,28 @@ class Main(object):
                     color_y = json.dumps( obj_y )
                     predominant = self.getBigArea( color_g,color_y,color_r )
 
+
+                    #======= datos para evaluar =======
+
+
+                    self.red = (_weight_red*100)/_total
+                    self.yellow = (_weight_yellow*100)/_total
+                    self.green = (_weight_green*100)/_total
+
+
+                    #==================================
+
+
                     font = cv2.FONT_HERSHEY_COMPLEX
-                    cv2.putText( _frame_yellow, f"El área rojo es: {str(_weight_red)}" , (30, 350), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
-                    cv2.putText( _frame_yellow, f"El área verde es: {str(_weight_green)}" , (30,370), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
-                    cv2.putText( _frame_yellow, f"El área amarillo es: {str(_weight_yellow)}" , (30,390), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El area rojo es: {str(  round(_weight_red,4)  )}" , (30, 350), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El area verde es: {str(   round(_weight_green,4)  )}" , (30,370), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El area amarillo es: {str(  round(_weight_yellow,4)  )}" , (30,390), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
                     cv2.putText( _frame_yellow, f"El color predominante es: { predominant } " , (30,450), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+
+                    """ cv2.putText( _frame_yellow, f"El area rojo es: {str(  round(self.red, 4 )  )}" , (30, 350), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El area verde es: {str( self.green )}" , (30,370), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El area amarillo es: {str( self.yellow )}" , (30,390), font, 0.68 , (255,255,255),1,cv2.LINE_AA  )
+                    cv2.putText( _frame_yellow, f"El color predominante es: { predominant } " , (30,450), font, 0.68 , (255,255,255),1,cv2.LINE_AA  ) """
 
 
                     im = Image.fromarray(_frame_yellow)
@@ -845,9 +882,9 @@ class Main(object):
 
                 _frame,_weight = self.process_frame( frame_copy , r_hue_min,r_sat_min,r_val_min,r_hue_max,r_sat_max,r_val_max , frame , (0,0,255) )
 
-                #print( f"El área total rojo es: { weight }"  )
+               
                 font = cv2.FONT_HERSHEY_COMPLEX
-                cv2.putText( _frame, f"El área rojo total es: {_weight}" , (30,450), font, 0.68 , (0,0,255),1,cv2.LINE_AA  )
+                cv2.putText( _frame, f"El area rojo total es: {_weight}" , (30,450), font, 0.68 , (0,0,255),1,cv2.LINE_AA  )
 
                 frame_rgb = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
                 im_red = Image.fromarray( frame_rgb )
@@ -873,9 +910,9 @@ class Main(object):
                 _frame,_weight = self.process_frame( frame , g_hue_min,g_sat_min,g_val_min,g_hue_max,g_sat_max,g_val_max, frame , (0,255,0) )
 
 
-                #print( f"El área total verde es: { weight }"  )
+                
                 font = cv2.FONT_HERSHEY_COMPLEX
-                cv2.putText( _frame, f"El área verde total es: {_weight}" , (30,450), font, 0.68 , (0,255,0),1,cv2.LINE_AA  )
+                cv2.putText( _frame, f"El area verde total es: {_weight}" , (30,450), font, 0.68 , (0,255,0),1,cv2.LINE_AA  )
              
                 frame_rgb = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
                 im_green = Image.fromarray( frame_rgb )
@@ -900,15 +937,15 @@ class Main(object):
 
                 _frame,_weight = self.process_frame( frame , y_hue_min,y_sat_min,y_val_min,y_hue_max,y_sat_max,y_val_max, frame , (24,147,255) )
 
-                #print( f"El área total rojo es: { weight }"  )
+                
                 font = cv2.FONT_HERSHEY_COMPLEX
-                cv2.putText( _frame, f"El área amarilla total es: {_weight}" , (30,450), font, 0.68 , (24,147,255),1,cv2.LINE_AA  )
+                cv2.putText( _frame, f"El area amarilla total es: {_weight}" , (30,450), font, 0.68 , (24,147,255),1,cv2.LINE_AA  )
 
-                #print( f"El área total amarillo es: { _weight }"  )
+                
                 frame_rgb = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
                 im_yellow = Image.fromarray(frame_rgb)
                 img_yellow = ImageTk.PhotoImage(image=im_yellow)
-                # -------------------  -------------------------#
+                
                 self.video_label_y.configure(image=img_yellow)
                 self.video_label_y.image = img_yellow
                 self.video_label_y.after(10, self.start_camera_yellow)
@@ -928,15 +965,15 @@ class Main(object):
 
                 _frame,_weight = self.process_frame( frame , b_hue_min,b_sat_min,b_val_min,b_hue_max,b_sat_max,b_val_max, frame , (24,147,255) )
 
-                #print( f"El área total rojo es: { weight }"  )
+                
                 font = cv2.FONT_HERSHEY_COMPLEX
-                cv2.putText( _frame, f"El área con manchas es: {_weight}" , (30,450), font, 0.68 , (24,147,255),1,cv2.LINE_AA  )
+                cv2.putText( _frame, f"El area con manchas es: {_weight}" , (30,450), font, 0.68 , (24,147,255),1,cv2.LINE_AA  )
 
-                #print( f"El área total amarillo es: { _weight }"  )
+               
                 frame_rgb = cv2.cvtColor(_frame, cv2.COLOR_BGR2RGB)
                 im_black = Image.fromarray(frame_rgb)
                 img_black = ImageTk.PhotoImage(image=im_black)
-                # -------------------  -------------------------#
+                
                 self.video_label_b.configure(image=img_black)
                 self.video_label_b.image = img_black
                 self.video_label_b.after(10, self.start_camera_black)
@@ -951,33 +988,32 @@ class Main(object):
         """ print("Valores de t_hsv table: ")
         for row in rows:
             print(row) """
-        # self.cursor.close()
+ 
 
     def on_tab_change(self, event):
         if self.tab_change_enabled:
-            #print("tab cambio")
+           
             selected_tab_index = self.tabs_vid.index(self.tabs_vid.select())
             if selected_tab_index == 0:
-                # Action for the 'original' tab
+          
                 self.handle_original_tab()
             elif selected_tab_index == 1:
-                # Action for the 'red' tab
+             
                 self.handle_red_tab()
             elif selected_tab_index == 2:
-                # Action for the 'green' tab
+            
                 self.handle_green_tab()
             elif selected_tab_index == 3:
-                # Action for the 'yellow' tab
+               
                 self.handle_yellow_tab()
-            elif selected_tab_index == 4:
-                self.handle_black_tab()
+         
 
         else:
             print("tab_change_enabled Dehabilitado")
-    # Separate functions for each tab change
+ 
 
     def handle_original_tabo(self):
-        # Your code for the 'original' tab action
+       
         print("000 tab selected")
         if self.cam is not None:
             self.cam.release()
@@ -985,8 +1021,7 @@ class Main(object):
             self.cam = None
 
     def handle_original_tab(self):
-        # Your code for the 'original' tab action
-        #print("Original tab selected")
+
         print("original TAB")
         if self.cam is not None:
             self.cam.release()
@@ -1000,7 +1035,7 @@ class Main(object):
         self.start_camera_orig()
 
     def handle_red_tab(self):
-        # Your code for the 'red' tab action
+     
         if self.cam is not None:
             self.cam.release()
             cv2.destroyAllWindows()
@@ -1079,51 +1114,40 @@ class Main(object):
         contours, hierarchy = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         area_total = 0
         contourTouched = []
-        #------------------ Get The Area ------------------------------//
-        """ for c in contours:
-            area = cv2.contourArea(c)
-            if area > 4500:
-                #print(f"Contour red{counter + 1}: Area = {area}")
-                cv2.drawContours( sumframe , contours,  -1 , colorval, 2, cv2.LINE_AA)
-                area_total += area """
+      
+     
         if contours and hierarchy is not None and len(hierarchy[0]) > 0:
             
             for i in range(len(contours)):
                 if not(i in contourTouched) :
                     contour = contours[i]
                     hierarchy_info = hierarchy[0][i]
-                    #print("hierarchy_info: " + str(i))
-                    #print(hierarchy_info)
-                    if hierarchy_info[2] > -1: #tiene hijo
+                  
+                    if hierarchy_info[2] > -1: 
                         area_father = cv2.contourArea( contour )
-                        cv2.drawContours( sumframe , [contour],  -1 , (255,0,0), 1, cv2.LINE_AA)
-                        #extraer todos los contornos cuyo padre es el anterior
+                       
+                        cv2.drawContours( sumframe , [contour],  -1 , colorval , 1, cv2.LINE_AA)
+                     
                         brothers_area = 0
                         for j in range(len(contours)):
                             hierarchy_brother = hierarchy[0][j]
                             if hierarchy_brother[3] == i : 
                                 brother_contour = contours[j]
                                 brothers_area +=  cv2.contourArea( brother_contour )
-                                cv2.drawContours( sumframe , [brother_contour],  -1 , (0,255,0), 1, cv2.LINE_AA)
+                               
+                                cv2.drawContours( sumframe , [brother_contour],  -1 , colorval , 1, cv2.LINE_AA)
                                 contourTouched.append( j )
-                        #endForbrother
-                        #simple way:
-                        """ area_child = cv2.contourArea(  contours[ hierarchy_info[2]  ] )
-                        cv2.drawContours( sumframe , [contours[ hierarchy_info[2] ]],  -1 , (0,255,0), 1, cv2.LINE_AA) """
-                        #Tiene hermano? next
+     
                         area = area_father - brothers_area
                         area_total += area
                     else:
-                        #print("No tiene hijo!!!")
+                   
                         area_child = cv2.contourArea( contour )
-                        cv2.drawContours( sumframe , [contour],  -1 , (255,255,255), 1, cv2.LINE_AA)
+                 
+                        cv2.drawContours( sumframe , [contour],  -1 , colorval , 1, cv2.LINE_AA)
                         area_total += area_child
-                    #print("\n")
+           
                 
-                   # print("El contorno tocado {}".format(i)  )
-            #fin For
-           # print( "El área total es: {}".format( area_total )  )
-
         #--------------------------------------------------------------//
 
         return sumframe , area_total      
@@ -1137,7 +1161,7 @@ class Main(object):
 def main():
     root = Tk()
     app = Main(root)
-    root.title("Library Managment System")
+    root.title("Interfaz de clasificación de mangos")
     root.geometry("1200x670")
     root.iconbitmap("icon/my.ico")
     root.resizable( False , False )

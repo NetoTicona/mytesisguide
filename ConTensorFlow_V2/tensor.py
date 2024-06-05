@@ -45,29 +45,15 @@ print( data_train )
 print("----------------")
 print("Data train escalada: ")
 print( train_input )
-def step_function(x):
-    return tf.where(x >= 0, 1, 0)
 
-""" modelo= tf.keras.Sequential([
-    tf.keras.layers.Dense( 8 , input_shape=[4] , activation="relu" ),
-    tf.keras.layers.Dense( 8 , activation="relu" ),
-    tf.keras.layers.Dense(1 , activation="sigmoid" )
-]) """
 
 modelo= tf.keras.Sequential([
     tf.keras.layers.Dense( 32 , input_shape=[4] , activation="relu" ),
+    tf.keras.layers.Dense( 64 , activation="relu" ),
     tf.keras.layers.Dense( 32 , activation="relu" ),
- 
     tf.keras.layers.Dense(1 , activation="sigmoid" )
 ])
 
-""" modelo= tf.keras.Sequential([
-    tf.keras.layers.Dense( 6 , input_shape=[4] , activation="relu" ),
-    tf.keras.layers.Dense( 32 , activation="relu" ),
-    tf.keras.layers.Dense( 32 , activation="relu" ),
-    tf.keras.layers.Dense( 7 , activation="relu" ),
-    tf.keras.layers.Dense(1 , activation="sigmoid" )
-]) """
 
 
 op = tf.keras.optimizers.RMSprop(0.001)

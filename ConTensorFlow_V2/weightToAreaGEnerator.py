@@ -138,13 +138,13 @@ df.to_excel('pesos_data.xlsx', index=False) """
 
 
 #------------------ pesos 429 y 450 ------------ #
-""" seed = 50
+seed = 50
 rand_state = 50
 
 rand = np.random.RandomState(seed)
 
 # Generate 248 data points with a uniform distribution between 429 and 451
-data = rand.uniform(low=435, high=445, size=100)
+data = rand.uniform(low=435, high=445, size=1329)
 
 # Round the data to 0 decimal places
 data = np.round(data, decimals=0)
@@ -153,4 +153,4 @@ data = np.round(data, decimals=0)
 df = pd.DataFrame(data, columns=['Data'])
 
 # Save the DataFrame to an Excel file
-df.to_excel('pesos_data.xlsx', index=False) """
+df.to_excel('pesos_data.xlsx', index=False)
